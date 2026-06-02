@@ -33,7 +33,7 @@ Currently supported protocols:
 ## Architecture
 
 <p align="center">
-  <img src="images/architecture/system_architecture.png" alt="System Architecture" width="500">
+  <img src="images/system_architecture.png" alt="System Architecture" width="500">
 </p>
 
 ---
