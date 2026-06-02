@@ -2,12 +2,7 @@
 
 # Peripheral Sniffer Analyzer
 
-### FPGA-Assisted UART & I²C Protocol Sniffer
-
-### Pranjal Upadhyay
-
-**Indian Institute of Information Technology Design and Manufacturing, Kurnool**
-
+### Peripheral Network Analyzer
 ---
 
 *Built using Vicharak Shrike Lite, Renesas SLG47910 ForgeFPGA, and RP2040*
