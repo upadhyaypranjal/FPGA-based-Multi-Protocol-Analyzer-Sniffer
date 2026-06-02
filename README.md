@@ -8,8 +8,6 @@
 
 ## Overview
 
-## Overview
-
 Peripheral Sniffer Analyzer is a hardware-assisted protocol monitoring and analysis system designed for reliable capture and decoding of digital communication protocols.
 
 The system is built on the Vicharak Shrike Lite platform and combines a Renesas SLG47910 ForgeFPGA with a Raspberry Pi RP2040 microcontroller. The FPGA acts as a synchronization frontend, receiving asynchronous external signals and mitigating metastability through hardware-based synchronization before forwarding them to the MCU. This ensures that the RP2040 receives stable, clock-safe signals for accurate protocol analysis.
