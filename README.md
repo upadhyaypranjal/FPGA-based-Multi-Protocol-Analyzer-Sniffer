@@ -42,9 +42,7 @@ The architecture separates signal conditioning from protocol processing, improvi
 
 | Component | Purpose |
 |------------|----------|
-| Vicharak Shrike Lite | Development Platform |
-| Renesas SLG47910 | FPGA Synchronization Frontend |
-| RP2040 | Protocol Decoder |
+| Vicharak Shrike Lite | Development Platform | | Renesas SLG47910 | FPGA Synchronization Frontend | | RP2040 | Protocol Decoder |
 | ESP8266 | Test Signal Generator |
 
 ---
