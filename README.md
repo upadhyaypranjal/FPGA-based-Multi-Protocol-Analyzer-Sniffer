@@ -33,24 +33,8 @@ Currently supported protocols:
 ## Architecture
 
 <p align="center">
-  <img src="images/architecture/system_architecture.png" alt="Peripheral Sniffer Analyzer Architecture" width="500">
+  <img src="images/architecture/system_architecture.png" alt="System Architecture" width="500">
 </p>
-
----
-
-## Repository Structure
-
-```text
-shrike-peripheral-sniffer/
-
-├── firmware/      RP2040 Firmware
-├── fpga/          FPGA RTL Designs
-├── docs/          Documentation
-├── tests/         Validation Scripts
-├── images/        Project Images
-├── hardware/      Hardware References
-└── README.md
-```
 
 ---
 
