@@ -16,16 +16,6 @@ The RP2040 is responsible for protocol identification, frame decoding, packet pr
 
 The architecture separates signal conditioning from protocol processing, improving reliability when monitoring high-speed or asynchronous communication buses.
 
-### Key Features
-
-- FPGA-based signal synchronization and metastability mitigation
-- Real-time protocol identification and decoding
-- UART frame monitoring and analysis
-- I²C bus monitoring and analysis
-- Timestamped event logging
-- USB serial output for host-side visualization
-- Modular architecture for future protocol expansion
-
 ### Currently Supported Protocols
 
 - **UART (Universal Asynchronous Receiver/Transmitter)**
