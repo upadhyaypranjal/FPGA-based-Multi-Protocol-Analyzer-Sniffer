@@ -51,7 +51,7 @@ The architecture separates signal conditioning from protocol processing, improvi
 
 | Software | Purpose |
 |-----------|----------|
-| Go Configure | FPGA configuration, synthesis, pin assignment, and bitstream generation |
+| Go Configure Software Hub | FPGA configuration, synthesis, pin assignment, and bitstream generation |
 | Arduino IDE | MCU firmware development and serial monitoring |
 
 ---
