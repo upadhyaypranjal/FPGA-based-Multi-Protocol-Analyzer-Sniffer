@@ -90,9 +90,9 @@ The architecture separates signal conditioning from protocol processing, improvi
 After programming both the FPGA and RP2040:
 
 1. Connect the host computer through USB.
-2. Open a serial terminal (PuTTY, Tera Term, Minicom, etc.).
+2. Open a serial terminal (Arduino IDE).
 3. Configure the terminal for the selected baud rate.
-4. Generate UART or I²C traffic from the external ESP8266.
+4. Generate UART or I2C traffic from the external ESP8266.
 5. Verify that protocol activity and decoded data are displayed on the host terminal.
 
 ---
