@@ -73,10 +73,6 @@ This architecture separates protocol analysis from host communication, allowing 
 ## Software Used
 
 | Software | Purpose |
-|-----------|----------|
-| Tool / Software | Purpose |
-|----------------|----------|
-| Tool / Software | Purpose |
 |----------------|----------|
 | Renesas Go Configure Software Hub | FPGA configuration and bitstream generation |
 | Thonny IDE | RP2040 MicroPython firmware execution and protocol monitoring |
