@@ -132,53 +132,52 @@ After FPGA configuration and firmware deployment:
 
 ### Folder Structure
 
-Peripheral_Analyzer_Sniffer/
-│
-├── Architecture/
+Peripheral_Analyzer_Sniffer
+├── Architecture
 │   ├── system_architecture.png
-│   │   (Overall system architecture diagram)
+│   │   └── Overall system architecture diagram
 │   │
 │   ├── signal_flow.png
-│   │   (ForgeFPGA synchronization and signal-conditioning architecture)
+│   │   └── ForgeFPGA synchronization and signal-conditioning architecture
 │   │
-│   ├── io_mapping_table.png
-│   │   (FPGA I/O Planner pin mapping and port assignment table)
+│   └── io_mapping_table.png
+│       └── FPGA I/O Planner pin mapping and port assignment table
 │
-├── FPGA/
+├── FPGA
 │   ├── top.v
-│   │   (Top-level integration module)
+│   │   └── Top-level integration module
 │   │
 │   ├── uart_rx_core.v
-│   │   (UART receiver and frame detection logic)
+│   │   └── UART receiver and frame detection logic
 │   │
 │   ├── i2c_decoder.v
-│   │   (I²C protocol decoder and packet extraction)
+│   │   └── I²C protocol decoder and packet extraction
 │   │
 │   ├── uart_fifo.v
-│   │   (Event buffer / FIFO storage)
+│   │   └── Event buffer / FIFO storage
 │   │
 │   ├── spi_target.v
-│   │   (SPI slave interface for host communication)
+│   │   └── SPI slave interface for host communication
 │   │
 │   └── io_planner.png
-│       (FPGA I/O Planner configuration screenshot)
+│       └── FPGA I/O Planner configuration screenshot
 │
-├── Firmware/
+├── Firmware
 │   └── protocol_analyzer.ino
-│       (ESP8266 traffic generator for UART and I²C validation)
+│       └── ESP8266 traffic generator for UART and I²C validation
 │
-├── Outputs/
+├── Outputs
 │   ├── uart_capture.png
-│   │   (UART protocol decoding results)
+│   │   └── UART protocol decoding results
 │   │
 │   ├── i2c_capture.png
-│   │   (I²C protocol decoding results)
+│   │   └── I²C protocol decoding results
 │   │
 │   └── terminal_output.png
-│       (Real-time protocol analyzer output)
+│       └── Real-time protocol analyzer output
 │
 └── README.md
-    (Project documentation, setup instructions, architecture and results)
+    └── Project documentation, setup instructions, architecture, and results
 
 --- 
 
