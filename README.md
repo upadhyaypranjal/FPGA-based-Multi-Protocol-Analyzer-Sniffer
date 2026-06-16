@@ -51,7 +51,6 @@ This architecture separates protocol analysis from host communication, allowing 
 
 ### Future Protocol Support
 
-- SPI (Serial Peripheral Interface)
 - Automatic UART baud-rate detection
 - Simultaneous multi-protocol monitoring
 - Timestamp generation
@@ -63,7 +62,7 @@ This architecture separates protocol analysis from host communication, allowing 
 
 | Component | Purpose |
 |------------|----------|
-| Vicharak Shrike Lite | Development Platform |
+| Shrike Lite | Development Platform |
 | Renesas SLG47910 ForgeFPGA | Protocol Capture, Decoding and Packetization |
 | Raspberry Pi RP2040 | SPI-to-USB Communication Bridge |
 | ESP8266 | Test Signal Generator |
@@ -157,11 +156,3 @@ Peripheral_Analyzer_Sniffer
 │
 └── README.md
 ```
----
-<div align="center">
-
-### Pranjal Upadhyay
-
-Indian Institute of Information Technology Design and Manufacturing, Kurnool
-
-</div>
