@@ -1,14 +1,12 @@
 # Peripheral Analyzer Sniffer
 
-**Difficulty:** Intermediate
 **Uses MCU:** Yes
 **External Hardware:** ESP8266 (used only as a test traffic generator — not required for normal operation)
 
 ## Overview
 
-This example turns your Shrike board into a hardware logic analyzer for UART, I²C, and SPI. The ForgeFPGA does all the real-time protocol decoding directly in hardware — detecting start bits, START/STOP conditions, and SPI chip-select edges — while the RP2040 forwards the decoded packets to your PC over USB serial. A companion PyQt6 desktop app displays everything live, so you can watch real digital communication happen byte-by-byte instead of just reading about it.
+This example turns the Shrike board into a hardware logic analyzer for UART, I²C, and SPI. The ForgeFPGA does all the real-time protocol decoding directly in hardware — detecting start bits, START/STOP conditions, and SPI chip-select edges — while the RP2040 forwards the decoded packets to your PC over USB serial. A companion PyQt6 desktop app displays everything live, so you can watch real digital communication happen byte-by-byte instead of just reading about it.
 
-If you've ever wondered what's actually moving across a UART line or an I²C bus, this is a hands-on way to see it.
 
 ## Compatibility
 
@@ -58,7 +56,7 @@ The same I²C bus is also connected to the RP2040 I²C slave interface:
 | D6 (GPIO12) | F14             | `spi_mon_miso` |
 | GND         | GND             | Common Ground  |
 
-> **Note:** These pin assignments were used during development and validation of this example on the Shrike Lite platform. The monitored signals can be mapped to different FPGA pins if desired by updating the FPGA design and firmware accordingly.
+> **Note:** These pin assignments were used during development and validation of this example on the Shrike Lite platform. The monitored signals can be mapped to different FPGA pins if desired by updating the FPGA I/O Planner in GCSH and firmware accordingly.
 
 The ESP8266 was used only as a traffic generator for testing. Any device generating UART, I²C, or SPI traffic can be monitored by the analyzer.
 
