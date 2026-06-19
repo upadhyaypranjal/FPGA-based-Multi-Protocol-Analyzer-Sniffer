@@ -88,14 +88,37 @@ The ESP8266 was used only as a traffic generator for testing. Any device generat
 3. Upload `firmware/micropython/peripheral_analyzer_sniffer.py`.
 4. Run it — it programs the FPGA and starts forwarding decoded packets over USB serial.
 
-### Host Application (PyQt6 GUI)
+## Using the Host GUI
 
-The desktop app lives in `host-app/` (outside the standard `examples/` template, added specifically for this project — see PR description).
+A pre-built Windows GUI executable is provided through the GitHub Releases section for users who wish to monitor protocol activity without running the terminal-based interface.
 
-1. `cd examples/peripheral_analyzer_sniffer/host-app`
-2. `pip install -r requirements.txt`
-3. `python main.py`
-4. Select the Shrike board's serial port from the dropdown and click **Connect**.
+### Download
+
+1. Navigate to the Releases section of this repository.
+2. Download the latest release package:
+   - `Executable.zip`
+3. Extract the ZIP archive to any location on your computer.
+4. Launch `main.exe`.
+
+### Connecting to the Analyzer
+
+1. Connect the Shrike Lite board to the host PC using USB.
+2. Ensure the protocol analyzer firmware is running on the RP2040.
+3. Open the GUI application.
+4. Select the appropriate COM port from the drop-down menu.
+5. Click **Connect**.
+
+Once connected, the GUI will automatically begin receiving decoded protocol packets from the analyzer.
+
+### Expected Operation
+
+After a successful connection:
+
+1. Generate UART, I²C, or SPI traffic using external hardware or the provided ESP8266 test generators.
+2. Decoded packets will appear automatically in the GUI.
+3. Protocol events are categorized and displayed in real time.
+4. Transaction history and waveform views can be accessed through the sidebar panels.
+
 
 ## Generating Test Traffic
 
@@ -144,13 +167,6 @@ PuTTY provides a simple way to generate custom test traffic without recompiling 
 - SPI: User input is converted into SPI transactions by the ESP8266 firmware.
 
 This approach makes it possible to test the analyzer using arbitrary messages and protocol activity while keeping the traffic-generation firmware simple and reusable.
-
-**GUI features:**
-- Real-time UART / I²C / SPI packet visualization
-- Color-coded packet history log
-- Session statistics (packet counts, error/NACK counts, throughput)
-- Export captured sessions to CSV/JSON
-- Per-protocol filtering, so you can isolate just UART or just I²C/SPI traffic
 
 ## How It Works
 
