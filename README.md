@@ -26,15 +26,43 @@ No external hardware is required to use the analyzer itself — it passively mon
 
 If you want to generate test traffic to try the analyzer out (recommended for first-time setup), wire up an ESP8266 as follows:
 
-| ESP8266 Pin | Shrike Pin | Signal |
-|-------------|------------|--------|
-| TX | UART_RX (FPGA input) | UART data |
-| SDA | I2C_SDA (FPGA input) | I²C data |
-| SCL | I2C_SCL (FPGA input) | I²C clock |
-| MOSI / SCK / CS | SPI_MOSI / SPI_SCK / SPI_CS (FPGA input) | SPI signals |
-| GND | GND | Common ground |
+### UART Monitoring
 
-> **Note:** The analyzer's monitoring inputs are passive (high-impedance reads). Always share a common ground between the Shrike board and whatever bus you're sniffing.
+| ESP8266 Pin | Shrike FPGA Pin | Signal        |
+| ----------- | --------------- | ------------- |
+| TX          | F7              | `uart_rx`     |
+| GND         | GND             | Common Ground |
+
+### I²C Monitoring
+
+| ESP8266 Pin | Shrike FPGA Pin | Signal        |
+| ----------- | --------------- | ------------- |
+| D1 (GPIO5)  | F9              | `i2c_scl`     |
+| D2 (GPIO4)  | F8              | `i2c_sda`     |
+| GND         | GND             | Common Ground |
+
+The same I²C bus is also connected to the RP2040 I²C slave interface:
+
+| Signal | RP2040 GPIO |
+| ------ | ----------- |
+| SDA    | GPIO18      |
+| SCL    | GPIO19      |
+
+### SPI Monitoring
+
+| ESP8266 Pin | Shrike FPGA Pin | Signal         |
+| ----------- | --------------- | -------------- |
+| D5 (GPIO14) | F10             | `spi_mon_sclk` |
+| D8 (GPIO15) | F11             | `spi_mon_cs_n` |
+| D7 (GPIO13) | F13             | `spi_mon_mosi` |
+| D6 (GPIO12) | F14             | `spi_mon_miso` |
+| GND         | GND             | Common Ground  |
+
+> **Note:** These pin assignments were used during development and validation of this example on the Shrike Lite platform. The monitored signals can be mapped to different FPGA pins if desired by updating the FPGA design and firmware accordingly.
+
+The ESP8266 was used only as a traffic generator for testing. Any device generating UART, I²C, or SPI traffic can be monitored by the analyzer.
+
+> **Important:** The analyzer's monitoring inputs are passive (high-impedance reads). Always share a common ground between the Shrike board and whatever bus you're sniffing.
 
 ## Quick Start (Pre-Built Bitstream)
 
@@ -62,13 +90,6 @@ If you want to generate test traffic to try the analyzer out (recommended for fi
 3. Upload `firmware/micropython/peripheral_analyzer_sniffer.py`.
 4. Run it — it programs the FPGA and starts forwarding decoded packets over USB serial.
 
-### Firmware (Arduino IDE — alternate path)
-
-1. Open `firmware/arduino-ide/peripheral_analyzer_sniffer.ino` in Arduino IDE 2.x.
-2. Select your board (Raspberry Pi Pico/RP2040, or ESP32-S3 for Shrike-fi).
-3. Make sure the Shrike Arduino library is installed.
-4. Upload.
-
 ### Host Application (PyQt6 GUI)
 
 The desktop app lives in `host-app/` (outside the standard `examples/` template, added specifically for this project — see PR description).
@@ -77,6 +98,54 @@ The desktop app lives in `host-app/` (outside the standard `examples/` template,
 2. `pip install -r requirements.txt`
 3. `python main.py`
 4. Select the Shrike board's serial port from the dropdown and click **Connect**.
+
+## Generating Test Traffic
+
+To demonstrate and validate the analyzer, an ESP8266 NodeMCU was used as a protocol traffic generator during development.
+
+### UART Traffic Generation
+
+UART traffic is generated directly through the ESP8266 USB serial interface. Since PuTTY acts as a serial terminal, any text entered by the user is transmitted as UART data and can be monitored immediately by the analyzer.
+
+```text
+User → PuTTY → ESP8266 UART TX → FPGA UART Decoder
+```
+
+---
+
+### I²C Traffic Generation
+
+For I²C testing, the ESP8266 firmware receives user input from PuTTY and converts each typed character into I²C transactions addressed to the target device.
+
+```text
+User → PuTTY → ESP8266 → I²C Bus → FPGA I²C Decoder
+```
+
+This allows arbitrary user-defined messages to be transmitted over I²C without modifying the firmware.
+
+---
+
+### SPI Traffic Generation
+
+For SPI testing, the ESP8266 firmware receives user input from PuTTY and transmits the entered characters over the SPI bus. The FPGA monitors the SPI signals and reconstructs the transmitted transaction.
+
+```text
+User → PuTTY → ESP8266 → SPI Bus → FPGA SPI Decoder
+```
+
+As with I²C testing, any message entered in PuTTY can be converted into SPI traffic and observed by the analyzer in real time.
+
+---
+
+### Why PuTTY Is Used
+
+PuTTY provides a simple way to generate custom test traffic without recompiling firmware for every experiment.
+
+- UART: User input is transmitted directly as UART data.
+- I²C: User input is converted into I²C transactions by the ESP8266 firmware.
+- SPI: User input is converted into SPI transactions by the ESP8266 firmware.
+
+This approach makes it possible to test the analyzer using arbitrary messages and protocol activity while keeping the traffic-generation firmware simple and reusable.
 
 **GUI features:**
 - Real-time UART / I²C / SPI packet visualization
@@ -87,7 +156,7 @@ The desktop app lives in `host-app/` (outside the standard `examples/` template,
 
 ## How It Works
 
-The FPGA is the heart of this example — it does all protocol decoding in hardware, deterministically, rather than relying on software polling that could miss fast transitions.
+The FPGA does all protocol decoding in hardware, deterministically, rather than relying on software polling that could miss fast transitions.
 
 - **Synchronization:** Incoming UART, I²C, and SPI lines are asynchronous to the FPGA's internal clock, so each is first passed through a synchronizer to avoid metastability before any logic touches it.
 - **UART decoding:** A start-bit detector watches the RX line for the falling edge that begins a frame, then samples at the configured baud rate to reconstruct each byte.
@@ -101,17 +170,44 @@ This split matters: software-only sniffers can miss events while busy doing othe
 
 ## Expected Output
 
-When everything is wired and running correctly, you should see something like this in the GUI:
+When everything is wired and running correctly, the GUI displays decoded protocol transactions in real time.
 
-```
-[12:04:01.221] UART  | TX: "Hello Shrike!"
-[12:04:01.512] I2C   | ADDR: 0x42 (WRITE) | ACK
-[12:04:01.513] I2C   | DATA: 0x7F | ACK
-[12:04:01.514] I2C   | STOP
-[12:04:01.890] SPI   | CS: LOW | MOSI: 0xA5 | MISO: 0x3C
+### UART Example
+
+```text
+PROTOCOL DETECTED : UART
+
+17:11:49    UART    MESSAGE    electronics and communication
 ```
 
-Each line is color-coded by protocol in the GUI, with running counters for total packets, bytes, and any NACK/error events shown in the statistics panel.
+### I²C Example
+
+```text
+PROTOCOL DETECTED : I2C
+
+▶ I2C TRANSACTION #7
+
+17:05:35    I2C    START    Bus Start
+17:05:35    I2C    ADDR     0x48 (WRITE) ACK
+17:05:35    I2C    DATA     0x6F ACK
+17:05:35    I2C    STOP     Bus Stop
+```
+
+### SPI Example
+
+```text
+PROTOCOL DETECTED : SPI
+
+▶ SPI TRANSACTION #1
+
+17:24:22    SPI    START
+17:24:22    SPI    BYTES    23
+17:24:22    SPI    MOSI     63 72 65 64 69 62 69 6C 69 74 79 20 61 6E 64 20 73 65 72 76 69 63 65
+17:24:22    SPI    MISO     FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+17:24:22    SPI    STOP
+```
+
+The GUI automatically groups protocol events into transactions, displays decoded protocol fields, and provides real-time monitoring of UART, I²C, and SPI communication activity.
 
 ## Future Improvements
 
