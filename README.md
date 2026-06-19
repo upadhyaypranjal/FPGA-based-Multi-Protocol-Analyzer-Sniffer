@@ -1,158 +1,122 @@
-<div align="center">
+# Peripheral Analyzer Sniffer
 
-# Peripheral Sniffer Analyzer
-
-</div>
-
----
+**Difficulty:** Intermediate
+**Uses MCU:** Yes
+**External Hardware:** ESP8266 (used only as a test traffic generator — not required for normal operation)
 
 ## Overview
 
-Peripheral Sniffer Analyzer is a hardware-assisted protocol monitoring and analysis system designed for reliable capture, decoding, and visualization of digital communication protocols.
+This example turns your Shrike board into a hardware logic analyzer for UART, I²C, and SPI. The ForgeFPGA does all the real-time protocol decoding directly in hardware — detecting start bits, START/STOP conditions, and SPI chip-select edges — while the RP2040 forwards the decoded packets to your PC over USB serial. A companion PyQt6 desktop app displays everything live, so you can watch real digital communication happen byte-by-byte instead of just reading about it.
 
-The system is built on the Vicharak Shrike Lite platform and combines a Renesas SLG47910 ForgeFPGA with a Raspberry Pi RP2040 microcontroller. The FPGA serves as the primary protocol analysis engine, directly capturing UART and I²C bus activity, synchronizing asynchronous signals, decoding protocol frames, packetizing events, and buffering decoded data.
+If you've ever wondered what's actually moving across a UART line or an I²C bus, this is a hands-on way to see it.
 
-Decoded packets are transferred to the RP2040 through an SPI interface. The RP2040 acts as a lightweight communication bridge, forwarding the decoded information to a host PC through USB serial for real-time monitoring and display.
+## Compatibility
 
-This architecture separates protocol analysis from host communication, allowing the FPGA to perform deterministic hardware-based protocol decoding while the RP2040 handles data forwarding and visualization.
+| Board | Firmware | Status |
+|-------|----------|--------|
+| Shrike-Lite (RP2040) | firmware/micropython/ | :white_check_mark: Tested |
+| Shrike (RP2350) | firmware/micropython/ | :white_large_square: Untested |
+| Shrike-fi (ESP32-S3) | firmware/arduino-ide/ | :white_large_square: Untested |
 
-### Currently Supported Protocols
+The FPGA bitstream is the same across all boards. Only the MCU-side firmware path differs.
 
-- **UART (Universal Asynchronous Receiver/Transmitter)**
-  - Start-bit detection
-  - Frame decoding
-  - Byte reconstruction
-  - Message reconstruction
-  - Real-time monitoring
+## Hardware Setup
 
-- **I²C (Inter-Integrated Circuit)**
-  - START condition detection
-  - STOP condition detection
-  - Address decoding
-  - Data-byte decoding
-  - ACK/NACK detection
-  - Real-time bus monitoring
+No external hardware is required to use the analyzer itself — it passively monitors signals already present on your bus.
 
-### FPGA Functions
+If you want to generate test traffic to try the analyzer out (recommended for first-time setup), wire up an ESP8266 as follows:
 
-- Asynchronous signal synchronization
-- UART protocol decoding
-- I²C protocol decoding
-- Event packet generation
-- FIFO buffering
-- SPI packet transmission
+| ESP8266 Pin | Shrike Pin | Signal |
+|-------------|------------|--------|
+| TX | UART_RX (FPGA input) | UART data |
+| SDA | I2C_SDA (FPGA input) | I²C data |
+| SCL | I2C_SCL (FPGA input) | I²C clock |
+| MOSI / SCK / CS | SPI_MOSI / SPI_SCK / SPI_CS (FPGA input) | SPI signals |
+| GND | GND | Common ground |
 
-### RP2040 Functions
+> **Note:** The analyzer's monitoring inputs are passive (high-impedance reads). Always share a common ground between the Shrike board and whatever bus you're sniffing.
 
-- SPI packet reception
-- Packet parsing
-- USB serial communication
-- Host display interface
+## Quick Start (Pre-Built Bitstream)
 
-### Future Protocol Support
+1. Connect your Shrike board to your PC via USB.
+2. Upload `bitstream/peripheral_analyzer_sniffer.bin` to the FPGA using ShrikeFlash (via Thonny/MicroPython — see `firmware/micropython/`).
+3. Install the host app dependencies and launch the GUI (see [Host Application](#host-application-pyqt6-gui) below).
+4. Generate some UART, I²C, or SPI traffic on the monitored lines.
+5. **Expected result:** decoded packets appear in the GUI in real time, color-coded by protocol, with timestamps and byte-level detail.
+
+## Build From Source
+
+### FPGA (Verilog)
+
+1. Open `peripheral_analyzer_sniffer.ffpga` in Go Configure Software Hub (GCSH).
+2. Verify I/O pin assignments in the IO Planner against your board variant.
+3. Click **Synthesize** → review resource/LUT utilization.
+4. Run **Place & Route (PnR)**.
+5. Click **Generate Bitstream**.
+6. Output will be in `ffpga/build/` — copy the resulting `.bin` into `bitstream/` if you want to refresh the pre-built copy.
+
+### Firmware (MicroPython — primary path)
+
+1. Open Thonny IDE and connect to your Shrike board.
+2. Copy `bitstream/peripheral_analyzer_sniffer.bin` to the board's filesystem.
+3. Upload `firmware/micropython/peripheral_analyzer_sniffer.py`.
+4. Run it — it programs the FPGA and starts forwarding decoded packets over USB serial.
+
+### Firmware (Arduino IDE — alternate path)
+
+1. Open `firmware/arduino-ide/peripheral_analyzer_sniffer.ino` in Arduino IDE 2.x.
+2. Select your board (Raspberry Pi Pico/RP2040, or ESP32-S3 for Shrike-fi).
+3. Make sure the Shrike Arduino library is installed.
+4. Upload.
+
+### Host Application (PyQt6 GUI)
+
+The desktop app lives in `host-app/` (outside the standard `examples/` template, added specifically for this project — see PR description).
+
+1. `cd examples/peripheral_analyzer_sniffer/host-app`
+2. `pip install -r requirements.txt`
+3. `python main.py`
+4. Select the Shrike board's serial port from the dropdown and click **Connect**.
+
+**GUI features:**
+- Real-time UART / I²C / SPI packet visualization
+- Color-coded packet history log
+- Session statistics (packet counts, error/NACK counts, throughput)
+- Export captured sessions to CSV/JSON
+- Per-protocol filtering, so you can isolate just UART or just I²C/SPI traffic
+
+## How It Works
+
+The FPGA is the heart of this example — it does all protocol decoding in hardware, deterministically, rather than relying on software polling that could miss fast transitions.
+
+- **Synchronization:** Incoming UART, I²C, and SPI lines are asynchronous to the FPGA's internal clock, so each is first passed through a synchronizer to avoid metastability before any logic touches it.
+- **UART decoding:** A start-bit detector watches the RX line for the falling edge that begins a frame, then samples at the configured baud rate to reconstruct each byte.
+- **I²C decoding:** Dedicated logic watches SDA relative to SCL to catch START and STOP conditions, then decodes address and data bytes along with their ACK/NACK bit.
+- **SPI decoding:** The SPI sniffer logic tracks the chip-select line to frame each transaction, then shifts in MOSI/MISO bits on the appropriate clock edge to reconstruct each transferred byte.
+- **Packetization & buffering:** Decoded bytes from all three protocols are wrapped into small event packets and pushed into a FIFO, so bursts of traffic don't get dropped while the RP2040 catches up.
+- **SPI bridge to RP2040:** The RP2040 polls the FPGA over SPI, pulls packets out of the FIFO, and forwards them over USB serial.
+- **Host display:** The RP2040 firmware is a thin bridge — all the real decoding already happened in the FPGA. The PyQt6 app on your PC just parses incoming serial packets and renders them.
+
+This split matters: software-only sniffers can miss events while busy doing other work, but the FPGA samples every clock edge regardless of what the RP2040 or PC is doing.
+
+## Expected Output
+
+When everything is wired and running correctly, you should see something like this in the GUI:
+
+```
+[12:04:01.221] UART  | TX: "Hello Shrike!"
+[12:04:01.512] I2C   | ADDR: 0x42 (WRITE) | ACK
+[12:04:01.513] I2C   | DATA: 0x7F | ACK
+[12:04:01.514] I2C   | STOP
+[12:04:01.890] SPI   | CS: LOW | MOSI: 0xA5 | MISO: 0x3C
+```
+
+Each line is color-coded by protocol in the GUI, with running counters for total packets, bytes, and any NACK/error events shown in the statistics panel.
+
+## Future Improvements
 
 - Automatic UART baud-rate detection
-- Simultaneous multi-protocol monitoring
-- Timestamp generation
-- Advanced packet logging and filtering
-
----
-
-## Hardware
-
-| Component | Purpose |
-|------------|----------|
-| Shrike Lite | Development Platform |
-| Renesas SLG47910 ForgeFPGA | Protocol Capture, Decoding and Packetization |
-| Raspberry Pi RP2040 | SPI-to-USB Communication Bridge |
-| ESP8266 | Test Signal Generator |
-| Host PC | Real-Time Monitoring and Visualization |
----
-
-## Software Used
-
-| Software | Purpose |
-|----------------|----------|
-| Renesas Go Configure Software Hub | FPGA configuration and bitstream generation |
-| Thonny IDE | RP2040 MicroPython firmware execution and protocol monitoring |
-| Arduino IDE | ESP8266 firmware development and generation of UART/I²C test traffic |
-| PuTTY |  User input terminal for generating test traffic through the ESP826 |
-
----
-
-## Architecture
-
-<p align="center">
-  <img src="Architecture/system_architecture.png" alt="System Architecture" width="800">
-</p>
-
----
-
-## Build Instructions
-
-### FPGA Bitstream Generation
-
-1. Launch the **Renesas Go Configure Software Hub**.
-2. Open the FPGA project located in the `fpga/rtl/` directory.
-3. Verify the I/O pin assignments using the IO Planner.
-4. Run synthesis and review resource utilization.
-5. Execute Place & Route (PnR).
-6. Generate the FPGA bitstream (`.bin`).
-7. Save the generated bitstream for deployment.
-
-### RP2040 Firmware Deployment
-
-1. Open the MicroPython environment (Thonny IDE).
-2. Connect the Vicharak Shrike Lite board to the host PC.
-3. Ensure the required Python scripts are available in the `firmware/` directory.
-4. Copy the generated FPGA bitstream (`FPGA_bitstream_MCU.bin`) to the RP2040 filesystem.
-5. Upload the protocol analyzer Python firmware to the board.
-6. Run the firmware to automatically configure and program the ForgeFPGA through the RP2040.
-7. Verify that the FPGA programming process completes successfully.
-
-### Validation
-
-After FPGA configuration and firmware deployment:
-
-1. Connect the host computer to the Shrike Lite board through USB.
-2. Open a serial terminal (Arduino IDE Serial Monitor, PuTTY, or Tera Term).
-3. Configure the terminal for the selected baud rate.
-4. Connect the ESP8266 test generator to the UART and I²C monitoring interfaces.
-5. Generate UART traffic, I²C traffic, or both simultaneously.
-6. Verify that the FPGA correctly detects, decodes, and packetizes protocol activity.
-7. Confirm that decoded UART messages and I²C transactions are displayed on the host terminal in real time.
-8. Validate correct detection of:
-   - UART messages
-   - I²C START and STOP conditions
-   - I²C Address frames
-   - I²C Data bytes
-   - ACK/NACK responses
----
-
-## Folder Structure
-
-```text
-Peripheral_Analyzer_Sniffer
-├── Architecture
-│   ├── system_architecture.png   # Overall system architecture
-│   ├── signal_flow.png           # Signal flow and synchronization architecture
-│   └── io_mapping_table.png      # FPGA pin mapping
-│
-├── FPGA
-│   ├── top.v                     # Top-level module
-│   ├── uart_rx_core.v            # UART decoder
-│   ├── i2c_decoder.v             # I²C decoder
-│   ├── uart_fifo.v               # Event buffer FIFO
-│   ├── spi_target.v              # SPI interface
-│   └── io_planner.png            # IO planner configuration
-│
-├── Firmware
-│   └── protocol_analyzer.ino     # ESP8266 traffic generator
-│
-├── Outputs
-│   ├── uart_capture.png          # UART output screenshots
-│   ├── i2c_capture.png           # I²C output screenshots
-│   └── terminal_output.png       # Analyzer terminal output
-│
-└── README.md
-```
+- Simultaneous multi-protocol triggering and cross-protocol timestamp correlation
+- Configurable capture triggers/filters at the FPGA level (not just in the GUI)
+- Persistent session logging to disk directly from firmware
+- Support for SPI mode (CPOL/CPHA) auto-detection
