@@ -1,4 +1,4 @@
-# Peripheral Analyzer Sniffer
+# FPGA based Multi-Protocol Analyzer Sniffer
 
 **Uses MCU:** Yes
 **External Hardware:** ESP8266 (used only as a test traffic generator — not required for normal operation)
