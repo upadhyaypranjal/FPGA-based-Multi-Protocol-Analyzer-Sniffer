@@ -1,8 +1,5 @@
 # FPGA based Multi-Protocol Analyzer Sniffer
 
-**Uses MCU:** Yes
-**External Hardware:** ESP8266 (used only as a test traffic generator — not required for normal operation)
-
 ## Overview
 
 This example turns the Shrike board into a hardware logic analyzer for UART, I²C, and SPI. The ForgeFPGA does all the real-time protocol decoding directly in hardware — detecting start bits, START/STOP conditions, and SPI chip-select edges — while the RP2040 forwards the decoded packets to your PC over USB serial. A companion PyQt6 desktop app displays everything live, so you can watch real digital communication happen byte-by-byte instead of just reading about it.
